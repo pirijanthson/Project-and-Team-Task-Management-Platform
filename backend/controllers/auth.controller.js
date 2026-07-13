@@ -39,6 +39,22 @@ exports.login = async(req,res)=>{
 
         const token = generateToken(user);
 
+        await prisma.session.create({
+
+            data:{
+
+                token:token,
+
+                userId:user.id,
+
+                expiresAt:new Date(
+                    Date.now() + 60 * 60 * 1000
+                )
+
+            }
+
+        });
+
 
         res.json({
 
@@ -59,6 +75,58 @@ exports.login = async(req,res)=>{
 
         res.status(500).json({
             message:error.message
+        });
+
+    }
+
+};
+
+exports.logout = async(req,res)=>{
+
+    try{
+
+        const authHeader =
+        req.headers.authorization;
+
+
+        if(!authHeader){
+
+            return res.status(401).json({
+
+                message:"Token required"
+
+            });
+
+        }
+
+
+        const token =
+        authHeader.split(" ")[1];
+
+
+        await prisma.session.deleteMany({
+
+            where:{
+                token:token
+            }
+
+        });
+
+
+        res.json({
+
+            message:"Logout successful"
+
+        });
+
+
+    }
+    catch(error){
+
+        res.status(500).json({
+
+            message:error.message
+
         });
 
     }

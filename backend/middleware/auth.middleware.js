@@ -2,29 +2,43 @@ const jwt = require("jsonwebtoken");
 const prisma = require("../config/prisma");
 
 
-const authenticate = async (req, res, next) => {
+const authMiddleware = async(req,res,next)=>{
 
-    try {
-
-        const authHeader = req.headers.authorization;
+    try{
 
 
-        if (!authHeader) {
+        const authHeader =
+        req.headers.authorization;
+
+
+        if(!authHeader){
+
             return res.status(401).json({
-                message: "Authorization token required"
+
+                message:"Authorization token required"
+
             });
+
         }
 
 
-        const token = authHeader.split(" ")[1];
+        const token =
+        authHeader.split(" ")[1];
 
 
-        if (!token) {
+        if(!token){
+
             return res.status(401).json({
-                message: "Invalid token format"
+
+                message:"Invalid token format"
+
             });
+
         }
 
+
+
+        // Verify JWT
 
         const decoded = jwt.verify(
             token,
@@ -32,35 +46,80 @@ const authenticate = async (req, res, next) => {
         );
 
 
-        const user = await prisma.user.findUnique({
-            where: {
-                id: decoded.id
+
+        // Check active session
+
+        const session =
+        await prisma.session.findUnique({
+
+            where:{
+                token:token
             }
+
         });
 
 
-        if (!user) {
-            return res.status(404).json({
-                message: "User not found"
+
+        if(!session){
+
+            return res.status(401).json({
+
+                message:"Session expired or logged out"
+
             });
+
         }
 
 
-        req.user = user;
+
+        // Check session expiry
+
+        if(
+            new Date() > session.expiresAt
+        ){
+
+            await prisma.session.delete({
+
+                where:{
+                    id:session.id
+                }
+
+            });
+
+
+            return res.status(401).json({
+
+                message:"Session expired"
+
+            });
+
+        }
+
+
+
+        // Attach user
+
+        req.user = decoded;
 
 
         next();
 
 
-    } catch(error) {
+    }
+    catch(error){
+
 
         return res.status(401).json({
-            message: "Invalid or expired token"
+
+            message:"Invalid or expired token"
+
         });
+
 
     }
 
 };
 
 
-module.exports = authenticate;
+
+module.exports = authMiddleware;
