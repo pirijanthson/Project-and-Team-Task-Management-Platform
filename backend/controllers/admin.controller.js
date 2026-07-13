@@ -15,6 +15,25 @@ exports.createUser = async(req,res)=>{
             role
         } = req.body;
 
+        // Role Validation
+
+        const allowedRoles = [
+            "PROJECT_MANAGER",
+            "TEAM_MEMBER"
+        ];
+
+
+        if(!allowedRoles.includes(role)){
+
+            return res.status(400).json({
+
+                message:
+                "Invalid role. Only PROJECT_MANAGER or TEAM_MEMBER allowed"
+
+            });
+
+        }
+
 
         // Check existing user
 
@@ -403,6 +422,218 @@ exports.deleteUser = async(req,res)=>{
             message:error.message
 
         });
+
+    }
+
+};
+
+// User Performance Analysis
+
+exports.getUserPerformance = async(req,res)=>{
+
+    try{
+
+
+        const users = await prisma.user.findMany({
+
+            where:{
+
+                role:{
+
+                    in:[
+                        "TEAM_MEMBER",
+                        "PROJECT_MANAGER"
+                    ]
+
+                }
+
+            },
+
+
+            select:{
+
+                id:true,
+
+                fullName:true,
+
+                email:true,
+
+                role:true,
+
+
+                assignedTasks:{
+
+                    select:{
+
+                        status:true,
+
+                        submittedAt:true
+
+                    }
+
+                },
+
+
+                createdProjects:{
+
+                    select:{
+
+                        status:true
+
+                    }
+
+                }
+
+            }
+
+        });
+
+
+
+        const performance = users.map(user=>{
+
+
+            // Team Member
+
+            if(user.role==="TEAM_MEMBER"){
+
+
+                const totalTasks =
+                user.assignedTasks.length;
+
+
+                const completedTasks =
+                user.assignedTasks.filter(
+                    task=>task.status==="COMPLETED"
+                ).length;
+
+
+                const activeTasks =
+                user.assignedTasks.filter(
+                    task=>task.status==="ACTIVE"
+                ).length;
+
+
+                const pendingTasks =
+                user.assignedTasks.filter(
+                    task=>task.status==="PENDING"
+                ).length;
+
+
+                const submittedTasks =
+                user.assignedTasks.filter(
+                    task=>task.submittedAt !== null
+                ).length;
+
+
+
+                return {
+
+                    id:user.id,
+
+                    name:user.fullName,
+
+                    email:user.email,
+
+                    role:user.role,
+
+                    totalTasks,
+
+                    completedTasks,
+
+                    activeTasks,
+
+                    pendingTasks,
+
+                    submittedTasks,
+
+
+                    completionRate:
+                    totalTasks === 0
+                    ? "0%"
+                    :
+                    `${Math.round(
+                    (completedTasks/totalTasks)*100
+                    )}%`
+
+                };
+
+
+            }
+
+
+
+            // Project Manager
+
+            if(user.role==="PROJECT_MANAGER"){
+
+
+                const totalProjects =
+                user.createdProjects.length;
+
+
+                const activeProjects =
+                user.createdProjects.filter(
+
+                    project=>
+                    project.status==="ACTIVE"
+
+                ).length;
+
+
+
+                const completedProjects =
+                user.createdProjects.filter(
+
+                    project=>
+                    project.status==="COMPLETED"
+
+                ).length;
+
+
+
+                return {
+
+                    id:user.id,
+
+                    name:user.fullName,
+
+                    email:user.email,
+
+                    role:user.role,
+
+                    totalProjects,
+
+                    activeProjects,
+
+                    completedProjects
+
+                };
+
+            }
+
+
+        });
+
+
+
+        res.json({
+
+            performance
+
+        });
+
+
+
+    }catch(error){
+
+
+        res.status(500).json({
+
+            message:error.message
+
+        });
+
 
     }
 

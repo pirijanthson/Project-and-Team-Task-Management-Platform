@@ -7,7 +7,8 @@ const {
     createUser,
     getAllUsers,
     updateUser,
-    deleteUser
+    deleteUser,
+    getUserPerformance
 }=require("../controllers/admin.controller");
 
 
@@ -45,6 +46,13 @@ router.delete(
     authenticate,
     authorize("ADMIN"),
     deleteUser
+);
+
+router.get(
+    "/users/performance",
+    authenticate,
+    authorize("ADMIN"),
+    getUserPerformance
 );
 
 
