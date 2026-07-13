@@ -113,6 +113,10 @@ model Task {
 
   completedAt DateTime?
 
+  isDeleted Boolean @default(false)
+
+  deletedAt DateTime?
+
   projectId Int
 
   project Project @relation(fields: [projectId], references: [id])
