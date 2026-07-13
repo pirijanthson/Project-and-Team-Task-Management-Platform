@@ -38,6 +38,8 @@ model User {
 
   role Role @default(TEAM_MEMBER)
 
+  isActive Boolean @default(true)
+
   createdProjects Project[]
 
   assignedTasks Task[]
@@ -66,6 +68,8 @@ model Project {
   endDate DateTime?
 
   estimatedHours Int
+
+  isDeleted Boolean @default(false)
 
   managerId Int
 
@@ -106,6 +110,8 @@ model Task {
   actualHours Int?
 
   status TaskStatus @default(PENDING)
+
+  completedAt DateTime?
 
   projectId Int
 
