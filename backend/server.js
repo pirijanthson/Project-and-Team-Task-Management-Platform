@@ -6,6 +6,7 @@ const adminRoutes = require("./routes/admin.routes");
 const projectRoutes = require("./routes/project.routes");
 const taskRoutes = require("./routes/task.routes");
 const teamRoutes = require("./routes/team.routes");
+const notificationRoutes = require("./routes/notification.routes");
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api", taskRoutes);
 app.use("/api/team", teamRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get(
     "/api/profile",

@@ -9,7 +9,9 @@ const {
     getMyTasks,
     updateTaskStatus,
     submitTask,
-    submitFeedback
+    submitFeedback,
+    getMyProfile,
+    getTaskHistory
 }=require("../controllers/team.controller");
 
 
@@ -59,6 +61,20 @@ router.post(
     authenticate,
     authorize("TEAM_MEMBER"),
     submitFeedback
+);
+
+router.get(
+    "/profile",
+    authenticate,
+    authorize("TEAM_MEMBER"),
+    getMyProfile
+);
+
+router.get(
+    "/task-history",
+    authenticate,
+    authorize("TEAM_MEMBER"),
+    getTaskHistory
 );
 
 

@@ -695,3 +695,190 @@ exports.submitFeedback = async(req,res)=>{
     }
 
 };
+
+// View Team Member Profile
+
+exports.getMyProfile = async(req,res)=>{
+
+    try{
+
+        const userId = req.user.id;
+
+
+        const user = await prisma.user.findUnique({
+
+            where:{
+                id:userId
+            },
+
+            select:{
+
+                id:true,
+
+                fullName:true,
+
+                email:true,
+
+                role:true,
+
+                createdAt:true
+
+            }
+
+        });
+
+
+
+        if(!user){
+
+            return res.status(404).json({
+
+                message:"User not found"
+
+            });
+
+        }
+
+
+        res.json({
+
+            profile:user
+
+        });
+
+
+
+    }catch(error){
+
+        res.status(500).json({
+
+            message:error.message
+
+        });
+
+    }
+
+};
+
+// Team Member Task History
+
+exports.getTaskHistory = async(req,res)=>{
+
+    try{
+
+        const userId = req.user.id;
+
+
+        const {
+            status
+        } = req.query;
+
+
+
+        let where = {
+
+            assignedTo:userId
+
+        };
+
+
+        // Filter by status
+
+        if(status){
+
+            where.status = status;
+
+        }
+
+
+
+        const tasks = await prisma.task.findMany({
+
+            where,
+
+            include:{
+
+                project:{
+
+                    select:{
+
+                        id:true,
+
+                        projectCode:true,
+
+                        name:true
+
+                    }
+
+                },
+
+                feedback:true
+
+            },
+
+
+            orderBy:{
+
+                updatedAt:"desc"
+
+            }
+
+        });
+
+
+
+        const summary = {
+
+            total:tasks.length,
+
+            pending:
+            tasks.filter(
+                t=>t.status==="PENDING"
+            ).length,
+
+
+            active:
+            tasks.filter(
+                t=>t.status==="ACTIVE"
+            ).length,
+
+
+            completed:
+            tasks.filter(
+                t=>t.status==="COMPLETED"
+            ).length,
+
+
+            submitted:
+            tasks.filter(
+                t=>t.submittedAt !== null
+            ).length
+
+        };
+
+
+
+        res.json({
+
+            summary,
+
+            tasks
+
+        });
+
+
+
+    }
+    catch(error){
+
+
+        res.status(500).json({
+
+            message:error.message
+
+        });
+
+
+    }
+
+};
