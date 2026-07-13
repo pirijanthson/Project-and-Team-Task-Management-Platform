@@ -113,6 +113,8 @@ model Task {
 
   completedAt DateTime?
 
+  submittedAt DateTime?
+
   isDeleted Boolean @default(false)
 
   deletedAt DateTime?
@@ -133,6 +135,7 @@ model Task {
 }
 
 model Feedback {
+
   id Int @id @default(autoincrement())
 
   message String
@@ -141,7 +144,12 @@ model Feedback {
 
   task Task @relation(fields: [taskId], references: [id])
 
+  createdBy Int
+
+  user User @relation(fields:[createdBy], references:[id])
+
   createdAt DateTime @default(now())
+
 }
 
 model Notification {
