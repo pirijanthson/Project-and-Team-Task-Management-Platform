@@ -10,6 +10,9 @@ const notificationRoutes = require("./routes/notification.routes");
 const adminProjectRoutes = require("./routes/admin.project.routes");
 const adminTaskRoutes = require("./routes/admin.task.routes");
 const adminDashboardRoutes = require("./routes/admin.dashboard.routes");
+const projectmanagerDashbordRoutes = require("./routes/projectManager.dashbord.routes")
+const performanceRoutes =require("./routes/performance.routes");
+const teamMemberRoutes =require("./routes/teamMember.dashbord.routes");
 
 const app = express();
 
@@ -24,6 +27,9 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin/projects", adminProjectRoutes);
 app.use("/api/admin/tasks", adminTaskRoutes);
 app.use("/api/admin/dashboard", adminDashboardRoutes);
+app.use("/api/performance", performanceRoutes);
+app.use("/api/projectmanager/dashbord", projectmanagerDashbordRoutes);
+app.use("/api/teammember/dashbord", teamMemberRoutes);
 
 app.get(
     "/api/profile",

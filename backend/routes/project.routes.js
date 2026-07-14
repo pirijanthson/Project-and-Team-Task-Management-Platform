@@ -6,7 +6,7 @@ const router = express.Router();
 const {
     createProject,
     getMyProjects,
-    getTeamMembers,
+    getMyAssignedMembers,
     assignMembers
 }=require("../controllers/project.controller");
 
@@ -37,7 +37,7 @@ router.get(
     "/team-members",
     authenticate,
     authorize("PROJECT_MANAGER"),
-    getTeamMembers
+    getMyAssignedMembers
 );
 
 router.post(

@@ -35,6 +35,30 @@ exports.createProject = async(req,res)=>{
         const projectCode = generateProjectCode();
 
 
+        const existingProject = await prisma.project.findFirst({
+
+            where: {
+
+                name: name,
+
+                managerId: req.user.id
+
+            }
+
+        });
+
+
+        if(existingProject){
+
+            return res.status(400).json({
+
+                message:"You already created a project with this name"
+
+            });
+
+        }
+
+
 
         const project = await prisma.project.create({
 
@@ -255,128 +279,79 @@ exports.getMyProjects = async(req,res)=>{
 
 // Get Team Members
 
-exports.getTeamMembers = async(req,res)=>{
+exports.getMyAssignedMembers = async (req, res) => {
 
-    try{
+    try {
 
+        const { search } = req.query;
 
-        const {search}=req.query;
+        let where = {
 
+            role: "TEAM_MEMBER",
 
-
-        let filter={
-
-            role:"TEAM_MEMBER",
-
-            isActive:true
+            managerId: req.user.id
 
         };
 
+        if (search) {
 
-
-        if(search){
-
-            filter.OR=[
+            where.OR = [
 
                 {
-
-                    fullName:{
-                        contains:search,
-                        mode:"insensitive"
+                    fullName: {
+                        contains: search,
+                        mode: "insensitive"
                     }
-
                 },
 
                 {
-
-                    email:{
-                        contains:search,
-                        mode:"insensitive"
+                    email: {
+                        contains: search,
+                        mode: "insensitive"
                     }
-
                 }
 
             ];
 
         }
 
-
-
         const members = await prisma.user.findMany({
 
-            where:filter,
+            where,
 
+            select: {
 
-            select:{
-
-                id:true,
-
-                fullName:true,
-
-                email:true,
-
-                role:true,
-
-
-                projectMembers:{
-
-                    select:{
-
-                        projectId:true
-
-                    }
-
-                }
+                id: true,
+                fullName: true,
+                email: true,
+                role: true,
+                managerId: true
 
             },
 
+            orderBy: {
 
-            orderBy:{
-
-                fullName:"asc"
+                fullName: "asc"
 
             }
 
         });
 
-
-
-        const result = members.map(member=>({
-
-            id:member.id,
-
-            fullName:member.fullName,
-
-            email:member.email,
-
-            role:member.role,
-
-            assignedProjects:
-                member.projectMembers.length
-
-        }));
-
-
-
         res.json({
 
-            total:result.length,
+            total: members.length,
 
-            members:result
+            members
 
         });
 
-
-
-    }catch(error){
-
+    } catch (error) {
 
         res.status(500).json({
 
-            message:error.message
+            message: error.message
 
         });
-
 
     }
 
@@ -443,7 +418,10 @@ exports.assignMembers = async(req,res)=>{
 
                     role:"TEAM_MEMBER",
 
-                    isActive:true
+                    isActive:true,
+
+                    managerId: req.user.id
+
 
                 }
 
@@ -451,9 +429,13 @@ exports.assignMembers = async(req,res)=>{
 
 
 
-            if(!member){
+            if (!member) {
 
-                continue;
+                return res.status(403).json({
+
+                    message: "This Team Member is not assigned to you."
+
+                });
 
             }
 
@@ -475,37 +457,39 @@ exports.assignMembers = async(req,res)=>{
 
 
 
-            if(!existing){
+            if(existing){
+
+                return res.status(400).json({
+
+                    message:`Team Member ID ${userId} is already assigned to this project`
+
+                });
+
+            }
 
 
-                assignments.push({
+            assignments.push({
 
-                    projectId:Number(projectId),
+                projectId:Number(projectId),
+
+                userId:userId
+
+            });
+
+
+            await prisma.notification.create({
+
+                data:{
+
+                    title:"Project Assignment",
+
+                    message:`You have been assigned to ${project.name}`,
 
                     userId:userId
 
-                });
+                }
 
-
-
-                // Notification
-
-                await prisma.notification.create({
-
-                    data:{
-
-                        title:"Project Assignment",
-
-                        message:`You have been assigned to ${project.name}`,
-
-                        userId:userId
-
-                    }
-
-                });
-
-
-            }
+            });
 
         }
 
@@ -546,3 +530,4 @@ exports.assignMembers = async(req,res)=>{
     }
 
 };
+

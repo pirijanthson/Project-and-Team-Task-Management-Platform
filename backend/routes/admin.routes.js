@@ -8,7 +8,8 @@ const {
     getAllUsers,
     updateUser,
     deleteUser,
-    getUserPerformance
+    getUserPerformance,
+    assignManager
 }=require("../controllers/admin.controller");
 
 
@@ -53,6 +54,13 @@ router.get(
     authenticate,
     authorize("ADMIN"),
     getUserPerformance
+);
+
+router.put(
+    "/assign-manager",
+    authenticate,
+    authorize("ADMIN"),
+    assignManager
 );
 
 

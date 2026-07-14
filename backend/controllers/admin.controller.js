@@ -638,3 +638,95 @@ exports.getUserPerformance = async(req,res)=>{
     }
 
 };
+
+// Assign Team Member to Project Manager
+
+exports.assignManager = async (req, res) => {
+
+    try {
+
+        const { teamMemberId, managerId } = req.body;
+
+        // Check Project Manager
+
+        const manager = await prisma.user.findFirst({
+
+            where: {
+
+                id: managerId,
+
+                role: "PROJECT_MANAGER"
+
+            }
+
+        });
+
+        if (!manager) {
+
+            return res.status(404).json({
+
+                message: "Project Manager not found"
+
+            });
+
+        }
+
+        // Check Team Member
+
+        const member = await prisma.user.findFirst({
+
+            where: {
+
+                id: teamMemberId,
+
+                role: "TEAM_MEMBER"
+
+            }
+
+        });
+
+        if (!member) {
+
+            return res.status(404).json({
+
+                message: "Team Member not found"
+
+            });
+
+        }
+
+        // Assign Manager
+
+        await prisma.user.update({
+
+            where: {
+
+                id: teamMemberId
+
+            },
+
+            data: {
+
+                managerId: managerId
+
+            }
+
+        });
+
+        res.json({
+
+            message: "Team Member assigned successfully"
+
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+
+            message: error.message
+
+        });
+
+    }
+
+};

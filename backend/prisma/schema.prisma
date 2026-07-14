@@ -38,6 +38,12 @@ model User {
 
   role Role @default(TEAM_MEMBER)
 
+  managerId Int?
+
+  manager User? @relation("ManagerTeamMembers", fields: [managerId], references: [id])
+
+  teamMembers User[] @relation("ManagerTeamMembers")
+
   isActive Boolean @default(true)
 
   createdProjects Project[]
@@ -85,6 +91,8 @@ model Project {
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
+
+  @@unique([name, managerId])
 }
 
 model ProjectMember {
@@ -99,6 +107,8 @@ model ProjectMember {
   user User @relation(fields: [userId], references: [id])
 
   joinedAt DateTime @default(now())
+
+  @@unique([projectId, userId])
 }
 
 model Task {

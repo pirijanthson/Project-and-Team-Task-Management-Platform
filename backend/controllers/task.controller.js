@@ -41,6 +41,31 @@ exports.createTask = async (req, res) => {
             });
         }
 
+        // Check duplicate task in same project
+
+        const existingTask = await prisma.task.findFirst({
+
+            where:{
+
+                title:title,
+
+                projectId:Number(projectId)
+
+            }
+
+        });
+
+
+        if(existingTask){
+
+            return res.status(400).json({
+
+                message:"This task already exists in this project"
+
+            });
+
+        }
+
         // Create task
         const task = await prisma.task.create({
             data: {
